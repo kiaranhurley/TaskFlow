@@ -1,30 +1,36 @@
----
-name: Feature request
-about: Suggest an idea for this project
-title: '[FEATURE] '
-labels: enhancement
-assignees: ''
----
+# Pull Request
 
-## Problem Statement
-Is your feature request related to a problem? Please describe.
-A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]
+## Description
+Please provide a brief description of the changes in this pull request.
 
-## Proposed Solution
-Describe the solution you'd like
-A clear and concise description of what you want to happen.
+## Related Issue
+Fixes #(issue number)
 
-## Alternative Solutions
-Describe alternatives you've considered
-A clear and concise description of any alternative solutions or features you've considered.
+## Type of Change
+Please delete options that are not relevant.
 
-## User Value
-How would this feature benefit users of TaskFlow?
-Explain who would use this feature and what value it would add to the application.
+- [ ] Bug fix (non-breaking change which fixes an issue)
+- [ ] New feature (non-breaking change which adds functionality)
+- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
+- [ ] Documentation update
+- [ ] Code refactoring
+- [ ] Performance improvement
+- [ ] Test coverage improvement
 
-## Implementation Ideas (Optional)
-If you have any ideas about how this could be implemented, please share them here.
-This might include technical approaches, UI/UX considerations, or other implementation details.
+## How Has This Been Tested?
+Please describe the tests that you ran to verify your changes. Provide instructions so we can reproduce.
 
-## Additional Context
-Add any other context or screenshots about the feature request here.
+## Checklist:
+- [ ] My code follows the style guidelines of this project
+- [ ] I have performed a self-review of my own code
+- [ ] I have commented my code, particularly in hard-to-understand areas
+- [ ] I have made corresponding changes to the documentation
+- [ ] My changes generate no new warnings
+- [ ] I have added tests that prove my fix is effective or that my feature works
+- [ ] New and existing unit tests pass locally with my changes
+- [ ] Any dependent changes have been merged and published in downstream modules
+
+## Screenshots (if applicable):
+
+## Additional Notes:
+Add any other context about the pull request here.
