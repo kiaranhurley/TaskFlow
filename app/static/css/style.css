@@ -5,11 +5,18 @@
     box-sizing: border-box;
 }
 
+html, body {
+    height: 100%;
+}
+
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     line-height: 1.6;
     color: #333;
     background-color: #f8f9fa;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
 }
 
 .container {
@@ -24,6 +31,7 @@ header {
     background-color: #4a6fa5;
     color: white;
     padding: 1rem 0;
+    margin-bottom: 2rem;
 }
 
 header .container {
@@ -58,6 +66,7 @@ nav ul li a:hover {
 
 /* Main content */
 main {
+    flex: 1;
     padding: 2rem 0;
 }
 
@@ -134,6 +143,11 @@ main {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 2rem;
+}
+
+.dashboard-header .btn {
+    padding: 0.6rem 1.2rem;
+    font-size: 0.95rem;
 }
 
 .task-filters {
@@ -344,9 +358,10 @@ select {
 footer {
     background-color: #333;
     color: white;
+    min-height: var(--footer-height);
     padding: 1.5rem 0;
     text-align: center;
-    margin-top: 3rem;
+    margin-top: auto;
 }
 
 /* Responsive */
@@ -382,4 +397,8 @@ footer {
         margin-top: 1rem;
         justify-content: flex-end;
     }
+}
+
+:root {
+    --footer-height: 4rem;  /* Adjust this value based on your footer content */
 } 
