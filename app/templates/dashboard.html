@@ -20,6 +20,14 @@
     </header>
 
     <main class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
         <section class="dashboard-header">
             <h2>Your Tasks</h2>
             <a href="{{ url_for('main.new_task') }}" class="btn">Add New Task</a>
