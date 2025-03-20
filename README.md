@@ -126,6 +126,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - Flask documentation and community
 - Bootstrap team for the CSS framework
 - All our contributors
+- Punjabi is a gayboy
 
 ## Contact
 
