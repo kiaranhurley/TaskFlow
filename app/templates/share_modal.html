@@ -1,0 +1,154 @@
+<!-- Share Task Modal -->
+<div class="modal fade" id="shareTaskModal-{{ task.id }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-share-alt me-2"></i>Share Task
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form action="{{ url_for('main.share_task', task_id=task.id) }}" method="POST" class="mb-4">
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Share with (email):</label>
+                        <input type="email" class="form-control" id="email" name="email" required>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="can_edit" name="can_edit">
+                            <label class="form-check-label" for="can_edit">
+                                Allow editing
+                            </label>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-share me-2"></i>Share
+                    </button>
+                </form>
+
+                {% if task.shares %}
+                <div class="mt-4">
+                    <h6 class="mb-3">Shared with:</h6>
+                    <div class="list-group">
+                        {% for share in task.shares %}
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <span>{{ share.shared_with.email }}</span>
+                                <span class="badge bg-{{ 'success' if share.can_edit else 'info' }} ms-2">
+                                    {{ 'Can Edit' if share.can_edit else 'View Only' }}
+                                </span>
+                            </div>
+                            <form action="{{ url_for('main.remove_share', task_id=task.id, share_id=share.id) }}" 
+                                  method="POST" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </form>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if task.share_link %}
+                <div class="mt-4">
+                    <h6 class="mb-3">Share Link:</h6>
+                    <div class="input-group">
+                        <input type="text" class="form-control" value="{{ request.host_url }}task/shared/{{ task.share_link }}" 
+                               id="shareLink-{{ task.id }}" readonly>
+                        <button class="btn btn-outline-secondary" type="button" 
+                                onclick="copyShareLink('{{ task.id }}')">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                </div>
+                {% else %}
+                <div class="mt-4">
+                    <form action="{{ url_for('main.generate_share_link', task_id=task.id) }}" method="POST">
+                        <button type="submit" class="btn btn-outline-primary">
+                            <i class="fas fa-link me-2"></i>Generate Share Link
+                        </button>
+                    </form>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.modal-content {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.modal-header {
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+.form-control {
+    border-radius: 6px;
+    border: 1px solid #dee2e6;
+    padding: 0.5rem 0.75rem;
+    transition: all 0.2s ease;
+}
+
+.form-control:focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.input-group .btn {
+    padding: 0.5rem 0.75rem;
+    border-color: #dee2e6;
+}
+
+.shared-with-list {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.list-group-item {
+    border-radius: 6px;
+    margin-bottom: 0.5rem;
+    border: 1px solid #dee2e6;
+    padding: 0.75rem 1rem;
+}
+
+.badge {
+    font-size: 0.75rem;
+    padding: 0.35rem 0.65rem;
+    border-radius: 999px;
+}
+
+.btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+    border-radius: 4px;
+}
+</style>
+
+<script>
+function copyShareLink(taskId) {
+    var copyText = document.getElementById("shareLink-" + taskId);
+    copyText.select();
+    copyText.setSelectionRange(0, 99999);
+    document.execCommand("copy");
+    
+    // Show a tooltip or some feedback
+    var button = copyText.nextElementSibling;
+    var originalHtml = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-check"></i>';
+    setTimeout(function() {
+        button.innerHTML = originalHtml;
+    }, 2000);
+}
+</script> 

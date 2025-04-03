@@ -1,0 +1,242 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="shared-tasks-header">
+        <h1 class="h2">
+            <i class="fas fa-share-alt me-2"></i>
+            Shared with Me
+        </h1>
+        <p class="text-muted">Tasks that other users have shared with you</p>
+    </div>
+
+    {% if shared_tasks %}
+    <div class="shared-tasks-grid">
+        {% for share in shared_tasks %}
+        <div class="shared-task-card">
+            <div class="card-header">
+                <div class="shared-by">
+                    <i class="fas fa-user me-2"></i>
+                    Shared by {{ share.shared_by.email }}
+                </div>
+                <div class="permission-badge {{ 'edit' if share.permission == 'edit' else 'view' }}">
+                    <i class="fas {{ 'fa-edit' if share.permission == 'edit' else 'fa-eye' }}"></i>
+                    {{ share.permission|title }} access
+                </div>
+            </div>
+
+            <div class="card-body">
+                <h3 class="task-title">{{ share.task.title }}</h3>
+                {% if share.task.description %}
+                <p class="task-description">{{ share.task.description }}</p>
+                {% endif %}
+
+                <div class="task-meta">
+                    <div class="meta-item">
+                        <i class="fas fa-calendar"></i>
+                        Due: {{ share.task.due_date.strftime('%Y-%m-%d') if share.task.due_date else 'No due date' }}
+                    </div>
+                    
+                    <div class="meta-item">
+                        <i class="fas fa-signal"></i>
+                        Priority: 
+                        <span class="priority-{{ 'high' if share.task.priority == 3 else 'medium' if share.task.priority == 2 else 'low' }}">
+                            {{ 'High' if share.task.priority == 3 else 'Medium' if share.task.priority == 2 else 'Low' }}
+                        </span>
+                    </div>
+                    
+                    <div class="meta-item">
+                        <i class="fas fa-tasks"></i>
+                        Status: 
+                        <span class="status-{{ share.task.status }}">
+                            {{ share.task.status|title }}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="task-actions">
+                    <a href="{{ url_for('main.view_shared_task', share_link=share.task.share_link) }}" 
+                       class="btn btn-primary">
+                        <i class="fas fa-external-link-alt"></i>
+                        View Task
+                    </a>
+                    
+                    {% if share.permission == 'edit' %}
+                    <a href="{{ url_for('main.edit_task', id=share.task.id) }}" 
+                       class="btn btn-outline-primary">
+                        <i class="fas fa-edit"></i>
+                        Edit
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-state-content">
+            <i class="fas fa-share-alt fa-3x mb-3"></i>
+            <h3>No Shared Tasks</h3>
+            <p class="text-muted">
+                When other users share tasks with you, they'll appear here.
+            </p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.shared-tasks-header {
+    margin-bottom: 2rem;
+}
+
+.shared-tasks-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 1.5rem;
+}
+
+.shared-task-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.shared-task-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+}
+
+.card-header {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-bottom: 1px solid #e9ecef;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.shared-by {
+    color: #4a5568;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+}
+
+.permission-badge {
+    padding: 0.35rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.permission-badge.edit {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+.permission-badge.view {
+    background: #e3f2fd;
+    color: #1976d2;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+.task-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 0.75rem;
+}
+
+.task-description {
+    color: #4a5568;
+    font-size: 0.95rem;
+    margin-bottom: 1.5rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.task-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.meta-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    color: #4a5568;
+}
+
+.priority-high { color: #e53e3e; }
+.priority-medium { color: #d69e2e; }
+.priority-low { color: #38a169; }
+
+.status-completed { color: #38a169; }
+.status-in_progress { color: #3182ce; }
+.status-pending { color: #718096; }
+
+.task-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-weight: 500;
+    flex: 1;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.empty-state-content {
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.empty-state i {
+    color: #a0aec0;
+}
+
+@media (max-width: 768px) {
+    .shared-tasks-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .card-header {
+        flex-direction: column;
+        gap: 0.75rem;
+        align-items: flex-start;
+    }
+    
+    .task-actions {
+        flex-direction: column;
+    }
+}
+</style>
+{% endblock %} 

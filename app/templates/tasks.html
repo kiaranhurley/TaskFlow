@@ -1,0 +1,278 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12 d-flex justify-content-between align-items-center">
+            <h1 class="display-4 mb-0">Task Manager</h1>
+            <a href="{{ url_for('main.add_task') }}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>New Task
+            </a>
+        </div>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <form id="filterForm" method="GET" action="{{ url_for('main.filter_tasks') }}" class="row g-3">
+                        <div class="col-md-3">
+                            <label for="status" class="form-label">Status</label>
+                            <select class="form-select filter-select" id="status" name="status">
+                                <option value="">All</option>
+                                <option value="pending" {% if request.args.get('status') == 'pending' %}selected{% endif %}>Pending</option>
+                                <option value="in_progress" {% if request.args.get('status') == 'in_progress' %}selected{% endif %}>In Progress</option>
+                                <option value="completed" {% if request.args.get('status') == 'completed' %}selected{% endif %}>Completed</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="priority" class="form-label">Priority</label>
+                            <select class="form-select filter-select" id="priority" name="priority">
+                                <option value="">All</option>
+                                <option value="1" {% if request.args.get('priority') == '1' %}selected{% endif %}>Low</option>
+                                <option value="2" {% if request.args.get('priority') == '2' %}selected{% endif %}>Medium</option>
+                                <option value="3" {% if request.args.get('priority') == '3' %}selected{% endif %}>High</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="category" class="form-label">Category</label>
+                            <select class="form-select filter-select" id="category" name="category">
+                                <option value="">All</option>
+                                {% for category in categories %}
+                                <option value="{{ category.id }}" {% if request.args.get('category')|string == category.id|string %}selected{% endif %}>
+                                    {{ category.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="sort_by" class="form-label">Sort By</label>
+                            <select class="form-select filter-select" id="sort_by" name="sort_by">
+                                <option value="created_at" {% if request.args.get('sort_by') == 'created_at' %}selected{% endif %}>Created Date</option>
+                                <option value="due_date" {% if request.args.get('sort_by') == 'due_date' %}selected{% endif %}>Due Date</option>
+                                <option value="priority" {% if request.args.get('sort_by') == 'priority' %}selected{% endif %}>Priority</option>
+                                <option value="title" {% if request.args.get('sort_by') == 'title' %}selected{% endif %}>Title</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tasks Grid -->
+    <div class="row">
+        {% for task in tasks %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">{{ task.title }}</h5>
+                    <div class="action-buttons">
+                        <a href="{{ url_for('main.edit_task', id=task.id) }}" class="action-btn" title="Edit Task">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <button class="action-btn action-btn-delete" type="button" 
+                                data-bs-toggle="modal" data-bs-target="#deleteModal{{ task.id }}" title="Delete Task">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if task.description %}
+                    <p class="card-text">{{ task.description }}</p>
+                    {% endif %}
+                    <div class="task-meta">
+                        {% if task.due_date %}
+                        <div class="meta-item">
+                            <i class="fas fa-calendar"></i>
+                            <span class="{% if task.due_date < now and task.status != 'completed' %}text-danger{% endif %}">
+                                {{ task.due_date.strftime('%Y-%m-%d') }}
+                            </span>
+                        </div>
+                        {% endif %}
+                        <div class="meta-item">
+                            <i class="fas fa-flag"></i>
+                            <span class="priority-badge priority-{{ task.priority }}">
+                                {{ ['Low', 'Medium', 'High'][task.priority - 1] }}
+                            </span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-tasks"></i>
+                            <span class="status-badge status-{{ task.status }}">
+                                {{ task.status|replace('_', ' ')|title }}
+                            </span>
+                        </div>
+                    </div>
+                    {% if task.categories %}
+                    <div class="task-categories mt-3">
+                        {% for category in task.categories %}
+                        <span class="badge" style="background-color: {{ category.color }}">
+                            {{ category.name }}
+                        </span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="card-footer">
+                    <form action="{{ url_for('main.toggle_task', task_id=task.id) }}" method="POST" class="d-inline">
+                        <button type="submit" class="btn btn-sm {% if task.status == 'completed' %}btn-secondary{% else %}btn-success{% endif %}">
+                            {% if task.status == 'completed' %}
+                            <i class="fas fa-undo me-1"></i>Mark Incomplete
+                            {% else %}
+                            <i class="fas fa-check me-1"></i>Mark Complete
+                            {% endif %}
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Delete Modal -->
+        <div class="modal fade" id="deleteModal{{ task.id }}" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Delete Task</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Are you sure you want to delete "{{ task.title }}"? This action cannot be undone.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <form action="{{ url_for('main.delete_task', task_id=task.id) }}" method="POST" class="d-inline">
+                            <button type="submit" class="btn btn-danger">Delete</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-12">
+            <div class="text-center py-5">
+                <i class="fas fa-tasks fa-3x text-muted mb-3"></i>
+                <h3>No tasks found</h3>
+                <p class="text-muted">Create your first task to get started!</p>
+                <a href="{{ url_for('main.add_task') }}" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>Create New Task
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+.task-meta {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+    font-size: 0.875rem;
+    color: #6c757d;
+}
+
+.meta-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.priority-badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.priority-1 { background-color: #e9ecef; color: #495057; }
+.priority-2 { background-color: #fff3cd; color: #856404; }
+.priority-3 { background-color: #f8d7da; color: #721c24; }
+
+.status-badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.status-pending { background-color: #e9ecef; color: #495057; }
+.status-in_progress { background-color: #cce5ff; color: #004085; }
+.status-completed { background-color: #d4edda; color: #155724; }
+
+.task-categories .badge {
+    margin-right: 0.5rem;
+    font-weight: 500;
+}
+
+.card {
+    transition: box-shadow 0.2s ease;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.card:hover {
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+@media (max-width: 768px) {
+    .task-meta {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+}
+
+.action-buttons {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    border: none;
+    background: transparent;
+    color: #6c757d;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    padding: 0;
+    text-decoration: none;
+}
+
+.action-btn:hover {
+    background-color: #f8f9fa;
+    color: #0d6efd;
+}
+
+.action-btn-delete:hover {
+    background-color: #fff5f5;
+    color: #dc3545;
+}
+
+.action-btn i {
+    font-size: 1rem;
+}
+</style>
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Get all filter select elements
+    const filterSelects = document.querySelectorAll('.filter-select');
+    
+    // Add change event listener to each select
+    filterSelects.forEach(select => {
+        select.addEventListener('change', function() {
+            // Submit the form when any select changes
+            document.getElementById('filterForm').submit();
+        });
+    });
+});
+</script>
+{% endblock %}
+{% endblock %} 

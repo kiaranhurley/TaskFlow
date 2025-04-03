@@ -1,103 +1,300 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TaskFlow - Dashboard</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-</head>
-<body>
-    <header>
-        <div class="container">
-            <h1>TaskFlow</h1>
-            <nav>
-                <ul>
-                    <li><a href="{{ url_for('main.index') }}">Home</a></li>
-                    <li><a href="{{ url_for('main.dashboard') }}" class="active">Dashboard</a></li>
-                </ul>
-            </nav>
+{% extends "base.html" %}
+
+{% block title %}Dashboard - TaskFlow{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="display-4 mb-0">Welcome, {{ current_user.username }}!</h1>
+            <p class="text-muted">Here's an overview of your tasks and activities.</p>
         </div>
-    </header>
+    </div>
 
-    <main class="container">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }}">{{ message }}</div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
-
-        <section class="dashboard-header">
-            <h2>Your Tasks</h2>
-            <a href="{{ url_for('main.new_task') }}" class="btn">Add New Task</a>
-        </section>
-
-        <section class="task-filters">
-            <div class="filter-group">
-                <label for="filter-status">Status:</label>
-                <select id="filter-status">
-                    <option value="all">All</option>
-                    <option value="active">Active</option>
-                    <option value="completed">Completed</option>
-                </select>
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card stat-card">
+                <div class="card-body">
+                    <h5 class="card-title">Total Tasks</h5>
+                    <h2 class="stat-value">{{ stats.total_tasks }}</h2>
+                </div>
             </div>
-            <div class="filter-group">
-                <label for="filter-priority">Priority:</label>
-                <select id="filter-priority">
-                    <option value="all">All</option>
-                    <option value="high">High</option>
-                    <option value="medium">Medium</option>
-                    <option value="low">Low</option>
-                </select>
+        </div>
+        <div class="col-md-3">
+            <div class="card stat-card">
+                <div class="card-body">
+                    <h5 class="card-title">Completed</h5>
+                    <h2 class="stat-value">{{ stats.completed_tasks }}</h2>
+                </div>
             </div>
-        </section>
+        </div>
+        <div class="col-md-3">
+            <div class="card stat-card">
+                <div class="card-body">
+                    <h5 class="card-title">In Progress</h5>
+                    <h2 class="stat-value">{{ stats.in_progress_tasks }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stat-card">
+                <div class="card-body">
+                    <h5 class="card-title">Overdue</h5>
+                    <h2 class="stat-value text-danger">{{ stats.overdue_tasks }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
 
-        <section class="tasks">
-            {% if tasks %}
-                {% for task in tasks %}
-                    <div class="task-item {% if task.completed %}completed{% endif %}">
-                        <div class="task-content">
-                            <h3>{{ task.title }}</h3>
-                            <p>{{ task.description }}</p>
-                            <div class="task-meta">
-                                {% if task.due_date %}
-                                    <span class="due-date" data-date="{{ task.due_date.strftime('%Y-%m-%d') }}">
-                                        Due: {{ task.due_date.strftime('%b %d, %Y') }}
-                                    </span>
+    <!-- Charts Row -->
+    <div class="row mb-4">
+        <!-- Priority Distribution -->
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Priority Distribution</h5>
+                </div>
+                <div class="card-body chart-container">
+                    <canvas id="priorityChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <!-- Category Distribution -->
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Category Distribution</h5>
+                </div>
+                <div class="card-body chart-container">
+                    <canvas id="categoryChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Recent Activity</h5>
+                </div>
+                <div class="card-body">
+                    <div class="activity-list">
+                        {% for activity in recent_activity %}
+                        <div class="activity-item">
+                            <div class="activity-icon">
+                                {% if activity.action == 'Completed' %}
+                                <i class="fas fa-check-circle text-success"></i>
+                                {% else %}
+                                <i class="fas fa-play-circle text-primary"></i>
                                 {% endif %}
-                                <span class="priority priority-{% if task.priority == 3 %}high{% elif task.priority == 2 %}medium{% else %}low{% endif %}">
-                                    Priority: {% if task.priority == 3 %}High{% elif task.priority == 2 %}Medium{% else %}Low{% endif %}
-                                </span>
+                            </div>
+                            <div class="activity-content">
+                                <div class="activity-title">{{ activity.task_title }}</div>
+                                <div class="activity-meta">
+                                    {{ activity.action }} • {{ activity.timestamp.strftime('%Y-%m-%d %H:%M') }}
+                                </div>
                             </div>
                         </div>
-                        <div class="task-actions">
-                            <form action="{{ url_for('main.toggle_task', task_id=task.id) }}" method="POST" class="inline-form">
-                                <button type="submit" class="btn-icon" title="{% if task.completed %}Mark as incomplete{% else %}Mark as complete{% endif %}">
-                                    {% if task.completed %}☑{% else %}☐{% endif %}
-                                </button>
-                            </form>
-                            <a href="{{ url_for('main.edit_task', task_id=task.id) }}" class="btn-icon" title="Edit task">✏️</a>
-                            <form action="{{ url_for('main.delete_task', task_id=task.id) }}" method="POST" class="inline-form">
-                                <button type="submit" class="btn-icon delete-btn" title="Delete task">🗑️</button>
-                            </form>
+                        {% else %}
+                        <div class="text-center text-muted py-4">
+                            <i class="fas fa-history fa-2x mb-2"></i>
+                            <p>No recent activity</p>
                         </div>
+                        {% endfor %}
                     </div>
-                {% endfor %}
-            {% else %}
-                <div class="empty-state">
-                    <p>You don't have any tasks yet. Click "Add New Task" to get started.</p>
                 </div>
-            {% endif %}
-        </section>
-    </main>
-
-    <footer>
-        <div class="container">
-            <p>&copy; 2025 TaskFlow. All rights reserved.</p>
+            </div>
         </div>
-    </footer>
+    </div>
+</div>
 
-    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
-</body>
-</html> 
+<style>
+.container-fluid {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    min-height: calc(100vh - 70px); /* Adjust based on your navbar height */
+    display: flex;
+    flex-direction: column;
+}
+
+.chart-container {
+    position: relative;
+    height: 300px !important;
+    width: 100%;
+}
+
+.card {
+    border: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    margin-bottom: 1.5rem;
+    height: 100%;
+    transition: box-shadow 0.2s ease;
+}
+
+.card:hover {
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #eee;
+    padding: 1rem 1.5rem;
+}
+
+.activity-list {
+    max-height: 400px;
+    overflow-y: auto;
+    padding-right: 5px;
+}
+
+.activity-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.activity-list::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.activity-list::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+.activity-list::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+.stat-card {
+    transition: box-shadow 0.2s ease;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.stat-card:hover {
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.stat-value {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin: 0;
+    color: #2c3e50;
+}
+
+.activity-item {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid #eee;
+}
+
+.activity-item:last-child {
+    border-bottom: none;
+}
+
+.activity-icon {
+    margin-right: 1rem;
+    font-size: 1.5rem;
+}
+
+.activity-content {
+    flex: 1;
+}
+
+.activity-title {
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+}
+
+.activity-meta {
+    font-size: 0.875rem;
+    color: #6c757d;
+}
+
+@media (max-width: 768px) {
+    .container-fluid {
+        padding: 0 1rem;
+        min-height: calc(100vh - 56px); /* Adjust for smaller navbar on mobile */
+    }
+    
+    .chart-container {
+        height: 250px !important;
+    }
+    
+    .stat-card {
+        margin-bottom: 1rem;
+    }
+    
+    .stat-value {
+        font-size: 2rem;
+    }
+}
+</style>
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const commonOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: {
+            duration: 0
+        },
+        hover: {
+            animationDuration: 0
+        },
+        responsiveAnimationDuration: 0,
+        plugins: {
+            legend: {
+                position: 'bottom',
+                labels: {
+                    padding: 20,
+                    boxWidth: 12,
+                    usePointStyle: true,
+                    pointStyle: 'circle'
+                }
+            }
+        }
+    };
+
+    // Priority Chart
+    const priorityCtx = document.getElementById('priorityChart');
+    if (priorityCtx) {
+        new Chart(priorityCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['High', 'Medium', 'Low'],
+                datasets: [{
+                    data: [{{ stats.priority_high }}, {{ stats.priority_medium }}, {{ stats.priority_low }}],
+                    backgroundColor: ['#dc3545', '#ffc107', '#28a745']
+                }]
+            },
+            options: commonOptions
+        });
+    }
+
+    // Category Chart
+    const categoryCtx = document.getElementById('categoryChart');
+    if (categoryCtx) {
+        new Chart(categoryCtx, {
+            type: 'doughnut',
+            data: {
+                labels: {{ category_names|tojson }},
+                datasets: [{
+                    data: {{ category_counts|tojson }},
+                    backgroundColor: {{ category_colors|tojson }}
+                }]
+            },
+            options: commonOptions
+        });
+    }
+});
+</script>
+{% endblock %}
+{% endblock %} 

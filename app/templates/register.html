@@ -1,71 +1,31 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TaskFlow - Register</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-</head>
-<body>
-    <header>
-        <div class="container">
-            <h1>TaskFlow</h1>
-            <nav>
-                <ul>
-                    <li><a href="{{ url_for('main.index') }}">Home</a></li>
-                </ul>
-            </nav>
-        </div>
-    </header>
+{% extends "auth_base.html" %}
 
-    <main class="container">
-        <section class="auth-container">
-            <h2>Register</h2>
-            
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    {% for category, message in messages %}
-                        <div class="alert alert-{{ category }}">{{ message }}</div>
-                    {% endfor %}
-                {% endif %}
-            {% endwith %}
-            
-            <form action="{{ url_for('auth.register') }}" method="POST">
-                <div class="form-group">
-                    <label for="username">Username</label>
-                    <input type="text" id="username" name="username" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="email">Email</label>
-                    <input type="email" id="email" name="email" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="password">Password</label>
-                    <input type="password" id="password" name="password" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="confirm_password">Confirm Password</label>
-                    <input type="password" id="confirm_password" name="confirm_password" required>
-                </div>
-                
-                <div class="form-actions">
-                    <button type="submit" class="btn">Register</button>
-                </div>
-            </form>
-            
-            <div class="auth-links">
-                <p>Already have an account? <a href="{{ url_for('auth.login') }}">Login</a></p>
-            </div>
-        </section>
-    </main>
+{% block title %}Register{% endblock %}
 
-    <footer>
-        <div class="container">
-            <p>&copy; 2025 TaskFlow. All rights reserved.</p>
-        </div>
-    </footer>
-</body>
-</html> 
+{% block content %}
+<h2 class="text-center mb-4">Register</h2>
+<form method="POST">
+    <div class="mb-3">
+        <label for="username" class="form-label">Username</label>
+        <input type="text" class="form-control" id="username" name="username" required>
+    </div>
+    <div class="mb-3">
+        <label for="email" class="form-label">Email</label>
+        <input type="email" class="form-control" id="email" name="email" required>
+    </div>
+    <div class="mb-3">
+        <label for="password" class="form-label">Password</label>
+        <input type="password" class="form-control" id="password" name="password" required>
+    </div>
+    <div class="mb-3">
+        <label for="confirm_password" class="form-label">Confirm Password</label>
+        <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+    </div>
+    <div class="d-grid gap-2">
+        <button type="submit" class="btn btn-primary">Register</button>
+    </div>
+</form>
+<div class="auth-footer">
+    <p class="mb-0">Already have an account? <a href="{{ url_for('auth.login') }}">Login</a></p>
+</div>
+{% endblock %} 

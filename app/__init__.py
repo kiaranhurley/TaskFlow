@@ -24,6 +24,7 @@ def create_app(config=None):
     login_manager.init_app(app)
     migrate.init_app(app, db)
     login_manager.login_view = 'auth.login'
+    login_manager.login_message = None  # Remove the default message
     
     # Register blueprints
     from app.routes import auth, main
